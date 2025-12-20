@@ -1,0 +1,9 @@
+apiVersion: v2
+appVersion: v3.2.2
+description: A Helm "umbrella chart" for Argo CD, a declarative, GitOps continuous delivery tool for Kubernetes.
+name: argo-cd
+version: 1.0.0
+dependencies:
+  - name: argo-cd
+    version: 9.1.9
+    repository: https://argoproj.github.io/argo-helm
