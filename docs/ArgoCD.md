@@ -108,7 +108,7 @@ $ helm repo update
 This will create the Chart.lock and charts/argo-cd-<version>.tgz files. The .tgz file is only required for the initial installation from our local machine. To avoid accidentally committing it, we can add it to the gitignore file:
 
 ```bash
-$ cd /Users/svachop/git
+$ cd /Users/svachop/git/homelab
 echo "homelab/charts/argo-cd/**/charts/" >> .gitignore
 echo ".DS_Store" >> ~/.gitignore_global
 git config --global core.excludesfile ~/.gitignore_global
