@@ -109,7 +109,7 @@ This will create the Chart.lock and charts/argo-cd-<version>.tgz files. The .tgz
 
 ```bash
 $ cd /Users/svachop/git/homelab
-echo "homelab/charts/argo-cd/**/charts/" >> .gitignore
+echo "charts/argo-cd/**/charts/" >> .gitignore
 echo ".DS_Store" >> ~/.gitignore_global
 git config --global core.excludesfile ~/.gitignore_global
 ```
