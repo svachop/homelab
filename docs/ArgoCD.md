@@ -13,25 +13,8 @@ In this guide, we’ll install ArgoCD on a Kubernetes cluster and deploy first a
 * [Installing ArgoCD on Kubernetes](installing-argocd-on-kubernetes)
 * [Accessing the ArgoCD Dashboard](accessing-the-argocd-dashboard)
 * [Deploying First Application with ArgoCD](deploying-first-application-with-argocd)
-* [Syncing and Monitoring Your Application](syncing-and-monitoring)
-
-* [Test](test)
-    * [Prerequisites](#prerequisites)
-    * [Installation](#installation)
-* [Usage](#usage)
-    * [Basic Example](#basic-example)
-    * [Advanced Usage](#advanced-usage)
-* [Project Structure](#project-structure)
-* [Contributing](#contributing)
-* [License](#license)
 
 ---
-
-## Prerequisites
-
-* Feature 1: Quick bullet point description.
-* Feature 2: Another benefit or capability.
-* Feature 3: Something unique or important.
 
 ## What is ArgoCD?
 
@@ -52,6 +35,7 @@ List all the software, tools, or dependencies required to run the project.
 
 ```bash
 brew install git
+brew install gh
 brew install helm
 ```
 
@@ -73,7 +57,8 @@ $ mkdir -p charts/argo-cd
 
 Then place a Chart.yaml file in it:
 
-https://github.com/svachop/homelab/charts/argo-cd/Chart.yaml
+https://github.com/svachop/homelab/blob/main/charts/argo-cd/Chart.yaml
+
 
 ```bash
 apiVersion: v2
@@ -89,7 +74,7 @@ dependencies:
 
 The version of our custom chart doesn't matter and can stay the same. The version of the dependency matters and if you want to upgrade the chart, would be the place to do it. The important thing is that we pull in the community-maintained argo-cd chart as a dependency. Next, create a values.yaml file for our chart:
 
-https://github.com/svachop/homelab/charts/argo-cd/values.yaml
+https://github.com/svachop/homelab/blob/main/charts/argo-cd/values.yaml
 
 To override the chart values of a dependency, we have to place them under the dependency name. Since our dependency in the Chart.yaml is called **argo-cd**, we have to place our values under the **argo-cd**: key. If the dependency name would be **abcd**, we'd place the values under the **abcd**: key.
 
