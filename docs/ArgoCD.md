@@ -229,6 +229,8 @@ We create the Application manifest for our root-app in declarative/root-app/root
 ```bash
 $ cd /Users/svachop/git/homelab
 $ mkdir -p declarative/root-app
+$ mkdir -p declarative/app-of-apps
+$ touch declarative/app-of-apps/1.yaml
 ```
 
 https://github.com/svachop/homelab/blob/main/declarative/root-app/root-app.yaml
@@ -271,7 +273,13 @@ $ cd /Users/svachop/git/homelab/declarative/root-app
 $ kubectl apply -f root-app.yaml
 ```
 
-In the Web UI we can now see that the root-app was created:
+In the Web UI and kubernetes cluster we can now see that the root-app was created:
+
+```bash
+$ kubectl -n argocd get application
+NAME       SYNC STATUS   HEALTH STATUS
+root-app   Unknown       Healthy
+```
 
 
 
