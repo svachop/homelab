@@ -1,8 +1,5 @@
 # ArgoCD Installation on Kubernetes
 
-**Argo CD is a Continuous Delivery (CD) tool that has gained popularity in DevOps for performing application delivery onto Kubernetes. It relies on a deployment method known as GitOps. GitOps is a mechanism that can pull the latest code and application configuration from the last known Git commit version and deploy it directly into Kubernetes resources.
-In this guide, we’ll install ArgoCD on a Kubernetes cluster and deploy first application using ArgoCD.**
-
 ![ArgoCD](images/argocd.jpeg)
 
 ## Table of Contents
@@ -49,11 +46,11 @@ brew install helm
 
 ## Creating a custom Helm chart
 
-We'll use Helm to install Argo CD with the community-maintained chart from argoproj/argo-helm. The Argo project doesn't provide an official Helm chart.
+We'll use Helm to install Argo CD with the community-maintained chart from [argoproj/argo-helm](https://github.com/argoproj/argo-helm/tree/main/charts/argo-cd). The Argo project doesn't provide an official Helm chart.
 
 Specifically, we are going to create a Helm "umbrella chart". This is basically a custom chart that wraps another chart. It pulls the original chart in as a dependency, and overrides the default values. In our case, we create an argo-cd Helm chart that wraps the community-maintained argo-cd Helm chart.
 
-Using this approach, we have more flexibility in the future, by possibly including additional Kubernetes resources. The most common use case for this is to add Secrets (which could be encrypted using 1Password) to our application. For example, if we use webhooks with Argo CD, we have the possibility to securely store the webhook URL in a Secret.
+Using this approach, we have more flexibility in the future, by possibly including additional Kubernetes resources. The most common use case for this is to add Secrets (which could be encrypted using 1Password in my case) to our application. For example, if we use webhooks with Argo CD, we have the possibility to securely store the webhook URL in a Secret.
 
 To create the umbrella chart, we make a directory in our Git repository:
 
@@ -65,7 +62,7 @@ $ mkdir -p charts/argo-cd
 
 Then place a Chart.yaml file in it:
 
-https://github.com/svachop/homelab/blob/main/charts/argo-cd/Chart.yaml
+[charts/argo-cd/Chart.yaml](https://github.com/svachop/homelab/blob/main/charts/argo-cd/Chart.yaml)
 
 
 ```YAML
@@ -82,7 +79,7 @@ dependencies:
 
 The version of our custom chart doesn't matter and can stay the same. The version of the dependency matters and if you want to upgrade the chart, would be the place to do it. The important thing is that we pull in the community-maintained argo-cd chart as a dependency. Next, create a values.yaml file for our chart:
 
-https://github.com/svachop/homelab/blob/main/charts/argo-cd/values.yaml
+[charts/argo-cd/values.yaml](https://github.com/svachop/homelab/blob/main/charts/argo-cd/values.yaml)
 
 To override the chart values of a dependency, we have to place them under the dependency name. Since our dependency in the Chart.yaml is called **argo-cd**, we have to place our values under the **argo-cd**: key. If the dependency name would be **abcd**, we'd place the values under the **abcd**: key.
 
@@ -98,7 +95,7 @@ $ helm dep update argo-cd/
 $ helm repo update
 ```
 
-This will create the Chart.lock and charts/argo-cd-<version>.tgz files. The .tgz file is only required for the initial installation from our local machine. To avoid accidentally committing it, we can add it to the gitignore file:
+This will create the Chart.lock and charts/argo-cd-\<version\>.tgz files. The .tgz file is only required for the initial installation from our local machine. To avoid accidentally committing it, we can add it to the .gitignore file:
 
 ```bash
 $ cd /Users/svachop/git/homelab
@@ -199,7 +196,7 @@ At this point, Argo CD applications could be added through the Web UI or CLI, bu
 
 ## App of Apps
 
-App-of-Apps pattern in ArgoCD—a id declarative approach that streamlines the creation and management of ArgoCD applications. Instead of manually deploying each application, the App-of-Apps pattern programmatically generates and manages multiple ArgoCD applications from a single root configuration.
+App-of-Apps pattern in ArgoCD is declarative approach that streamlines the creation and management of ArgoCD applications. Instead of manually deploying each application, the App-of-Apps pattern programmatically generates and manages multiple ArgoCD applications from a single root configuration.
 
 The core idea is to create a root ArgoCD application whose source points to a folder containing YAML definition files for each microservice or application. Each YAML file specifies a path to a directory containing the relevant Kubernetes manifests. Once all these configuration files are committed to a Git repository, ArgoCD automatically detects and deploys the defined applications.
 
@@ -213,13 +210,13 @@ The root application acts as an orchestrator. It cues ArgoCD to traverse the spe
 
 ### root-app
 
-In general, when we want to add an application to Argo CD, we need to add an Application resource in our Kubernetes cluster. The resource needs to specify where to find manifests for our application. These manifest can either be YAML files, a Helm chart, Kustomize or Jsonnet. In this tutorial, we'll focus on creating applications that use Helm charts.
+In general, when we want to add an application to Argo CD, we need to add an Application resource in our Kubernetes cluster. The resource needs to specify where to find manifests for our application. These manifest can either be YAML files, a Helm chart, Kustomize or Jsonnet.
 
 For example, if we wanted to deploy Prometheus (which we will do later), we would write a Application YAML manifest for it, and put it in our Git repository. It would specify the URL to the Prometheus Helm-Chart, and override values to customize it. We would then apply the manifest and wait for the resources to be created in the cluster.
 
 The easiest way to apply the manifest is with the kubectl CLI. However, it's a manual step that's error-prone, insecure, and we need to repeat it every time we add or update applications. With Argo CD there is a better way to handle this. We can automate adding/updating applications by creating an Application that implements the app of apps pattern. In this tutorial, we'll call this the "root-app".
 
-The root-app is a Helm chart that renders Application manifests. Initially it has to be added manually, but after that we can just commit Application manifests with Git, and they will be deployed automatically.
+The root-app is manifests file. Initially it has to be added manually, but after that we can just commit Application manifests with Git, and they will be deployed automatically.
 
 To show how this works in more detail, we'll create the root-app next.
 
@@ -234,7 +231,7 @@ $ mkdir -p declarative/app-of-apps
 $ touch declarative/app-of-apps/1.yaml
 ```
 
-https://github.com/svachop/homelab/blob/main/declarative/root-app/root-app.yaml
+[declarative/root-app/root-app.yaml](https://github.com/svachop/homelab/blob/main/declarative/root-app/root-app.yaml)
 
 ```YAML
 apiVersion: argoproj.io/v1alpha1
@@ -296,7 +293,7 @@ To achieve this, we need to create an Application manifest that points to our Ar
 
 The application manifest looks like this:
 
-[argo-cd.yaml](https://github.com/svachop/homelab/blob/main/declarative/app-of-apps/argo-cd.yaml)
+[declarative/app-of-apps/argo-cd.yaml](https://github.com/svachop/homelab/blob/main/declarative/app-of-apps/argo-cd.yaml)
 
 ```YAML
 apiVersion: argoproj.io/v1alpha1
@@ -325,7 +322,7 @@ In the Web UI we should now see the root-app being OutOfSync, and then changing 
 
 For faster change detection look into setting up [webhooks](https://argo-cd.readthedocs.io/en/stable/operator-manual/webhook/), these will trigger a sync immediately after pushing to the Git repo.
 
-![A screenshot of the argo-cd application.](images/argocd-root-app.jpg)
+![A screenshot of the argo-cd application.](images/argo-cd-app.jpg)
 
 Once the Argo CD application is green (synced) we're done. We can make changes to our Argo CD installation the same way we change other applications: by changing the files in the repo and pushing it to our Git repository.
 
