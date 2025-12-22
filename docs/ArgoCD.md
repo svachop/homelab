@@ -7,12 +7,17 @@ In this guide, we’ll install ArgoCD on a Kubernetes cluster and deploy first a
 
 ## Table of Contents
 
-* [Prerequisites](#prerequisites)
 * [What is ArgoCD?](#what-is-argocd)
 * [How Does ArgoCD Work?](#how-does-argocd-work)
-* [Installing ArgoCD on Kubernetes](installing-argocd-on-kubernetes)
-* [Accessing the ArgoCD Dashboard](accessing-the-argocd-dashboard)
-* [Deploying First Application with ArgoCD](deploying-first-application-with-argocd)
+* [Prerequisites](#prerequisites)
+* [Creating a custom Helm chart](#creating-a-custom-helm-chart)
+* [Installing our Helm chart](#installing-our-helm-chart)
+* [Accessing the ArgoCD Dashboard](#accessing-the-argocd-dashboard)
+* [App of Apps](#app-of-apps)
+    * [Benefits of the App-of-Apps Pattern](#benefits-of-the-app-of-apps-pattern)
+    * [root-app](#root-app)
+    * [Creating the root-app manifest](#creating-the-root-app-manifest)
+* [Deploying First Application with ArgoCD](#deploying-first-application-with-argocd)
 
 ---
 
@@ -29,7 +34,7 @@ ArgoCD supports a variety of Kubernetes manifests. Whether you work with customi
 
 ![A screenshot of the dashboard interface](images/what-why-how-argocd.jpg)
 
-### Prerequisites
+## Prerequisites
 
 List all the software, tools, or dependencies required to run the project.
 
@@ -39,7 +44,9 @@ brew install gh
 brew install helm
 ```
 
-## Installing ArgoCD on Kubernetes
+<p align="right">(<a href="#table-of-contents">back to top</a>)</p>
+
+## Creating a custom Helm chart
 
 We'll use Helm to install Argo CD with the community-maintained chart from argoproj/argo-helm. The Argo project doesn't provide an official Helm chart.
 
@@ -60,7 +67,7 @@ Then place a Chart.yaml file in it:
 https://github.com/svachop/homelab/blob/main/charts/argo-cd/Chart.yaml
 
 
-```bash
+```YAML
 apiVersion: v2
 appVersion: v3.2.2
 description: A Helm "umbrella chart" for Argo CD, a declarative, GitOps continuous delivery tool for Kubernetes.
@@ -110,4 +117,164 @@ $ git push
 
 The next step is to install our chart.
 
+<p align="right">(<a href="#table-of-contents">back to top</a>)</p>
 
+## Installing our Helm chart
+
+We have to do the initial installation manually from our local machine, later we set up Argo CD to manage itself (meaning that Argo CD will automatically detect any changes to the helm chart and synchronize it):
+
+```bash
+$ cd /Users/svachop/git/homelab
+$ helm install argo-cd charts/argo-cd/ --namespace argocd --create-namespace
+```
+
+Once installation is completed we should see following output and all resources:
+
+```bash
+NAME: argo-cd
+LAST DEPLOYED: Sun Dec 21 17:01:23 2025
+NAMESPACE: argocd
+STATUS: deployed
+REVISION: 1
+DESCRIPTION: Install complete
+TEST SUITE: None
+```
+
+```bash
+$ kubectl -n argocd get all
+NAME                                                           READY   STATUS    RESTARTS        AGE
+pod/argo-cd-argocd-application-controller-0                    1/1     Running   0               5m22s
+pod/argo-cd-argocd-applicationset-controller-59cb78ffd-qprlj   1/1     Running   0               5m22s
+pod/argo-cd-argocd-dex-server-f5f9c7c78-8j8b2                  1/1     Running   1 (5m20s ago)   5m22s
+pod/argo-cd-argocd-notifications-controller-65449c8486-xwz4c   1/1     Running   0               5m22s
+pod/argo-cd-argocd-redis-7647c8776f-9hl82                      1/1     Running   0               5m22s
+pod/argo-cd-argocd-repo-server-ddfd44659-5wpkj                 1/1     Running   0               5m22s
+pod/argo-cd-argocd-server-675fd4497c-n2bbq                     1/1     Running   0               5m22s
+
+NAME                                               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+service/argo-cd-argocd-applicationset-controller   ClusterIP   10.107.46.199    <none>        7000/TCP                     5m22s
+service/argo-cd-argocd-dex-server                  ClusterIP   10.101.194.135   <none>        5556/TCP,5557/TCP            5m22s
+service/argo-cd-argocd-redis                       ClusterIP   10.100.113.41    <none>        6379/TCP                     5m22s
+service/argo-cd-argocd-repo-server                 ClusterIP   10.102.180.251   <none>        8081/TCP                     5m22s
+service/argo-cd-argocd-server                      NodePort    10.111.6.118     <none>        80:30080/TCP,443:30443/TCP   5m22s
+
+NAME                                                       READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/argo-cd-argocd-applicationset-controller   1/1     1            1           5m22s
+deployment.apps/argo-cd-argocd-dex-server                  1/1     1            1           5m22s
+deployment.apps/argo-cd-argocd-notifications-controller    1/1     1            1           5m22s
+deployment.apps/argo-cd-argocd-redis                       1/1     1            1           5m22s
+deployment.apps/argo-cd-argocd-repo-server                 1/1     1            1           5m22s
+deployment.apps/argo-cd-argocd-server                      1/1     1            1           5m22s
+
+NAME                                                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/argo-cd-argocd-applicationset-controller-59cb78ffd   1         1         1       5m22s
+replicaset.apps/argo-cd-argocd-dex-server-f5f9c7c78                  1         1         1       5m22s
+replicaset.apps/argo-cd-argocd-notifications-controller-65449c8486   1         1         1       5m22s
+replicaset.apps/argo-cd-argocd-redis-7647c8776f                      1         1         1       5m22s
+replicaset.apps/argo-cd-argocd-repo-server-ddfd44659                 1         1         1       5m22s
+replicaset.apps/argo-cd-argocd-server-675fd4497c                     1         1         1       5m22s
+
+NAME                                                     READY   AGE
+statefulset.apps/argo-cd-argocd-application-controller   1/1     5m22s
+```
+
+<p align="right">(<a href="#table-of-contents">back to top</a>)</p>
+
+## Accessing the ArgoCD Dashboard
+
+To access the Web UI we need to use IP adress of our k8s cluster and port on service/argo-cd-argocd-server is listening. The default username is **admin** and the password is auto-generated and stored in secret **argocd-initial-admin-secret**. We can get the password with:
+
+```bash
+$ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d; echo
+```
+
+After logging in, we'll see the empty Web UI:
+
+![A screenshot of the dashboard interface](images/argocd-dashboard.jpg)
+
+At this point, Argo CD applications could be added through the Web UI or CLI, but we want to manage everything in a declarative way (Infrastructure as code). This means need to write Application manifests in YAML, and commit them to our Git repo.
+
+<p align="right">(<a href="#table-of-contents">back to top</a>)</p>
+
+## App of Apps
+
+App-of-Apps pattern in ArgoCD—a id declarative approach that streamlines the creation and management of ArgoCD applications. Instead of manually deploying each application, the App-of-Apps pattern programmatically generates and manages multiple ArgoCD applications from a single root configuration.
+
+The core idea is to create a root ArgoCD application whose source points to a folder containing YAML definition files for each microservice or application. Each YAML file specifies a path to a directory containing the relevant Kubernetes manifests. Once all these configuration files are committed to a Git repository, ArgoCD automatically detects and deploys the defined applications.
+
+The root application acts as an orchestrator. It cues ArgoCD to traverse the specified directory, reading every YAML file to instantiate the associated applications. This ensures that updates in your Git repository trigger automatic synchronization with your Kubernetes cluster.
+
+### Benefits of the App-of-Apps Pattern
+
+* **Centralized Control** - Manage multiple applications from a single ArgoCD application.
+* **Automated Synchronization** - Automatically detect and deploy changes from your Git repository to your Kubernetes cluster.
+* **Scalable Management** - Easily add or update applications without manual intervention on each deployment.
+
+### root-app
+
+In general, when we want to add an application to Argo CD, we need to add an Application resource in our Kubernetes cluster. The resource needs to specify where to find manifests for our application. These manifest can either be YAML files, a Helm chart, Kustomize or Jsonnet. In this tutorial, we'll focus on creating applications that use Helm charts.
+
+For example, if we wanted to deploy Prometheus (which we will do later), we would write a Application YAML manifest for it, and put it in our Git repository. It would specify the URL to the Prometheus Helm-Chart, and override values to customize it. We would then apply the manifest and wait for the resources to be created in the cluster.
+
+The easiest way to apply the manifest is with the kubectl CLI. However, it's a manual step that's error-prone, insecure, and we need to repeat it every time we add or update applications. With Argo CD there is a better way to handle this. We can automate adding/updating applications by creating an Application that implements the app of apps pattern. In this tutorial, we'll call this the "root-app".
+
+The root-app is a Helm chart that renders Application manifests. Initially it has to be added manually, but after that we can just commit Application manifests with Git, and they will be deployed automatically.
+
+To show how this works in more detail, we'll create the root-app next.
+
+### Creating the root-app manifest
+
+We create the Application manifest for our root-app in declarative/root-app/root-app.yaml.
+
+```bash
+$ cd /Users/svachop/git/homelab
+$ mkdir -p declarative/root-app
+```
+
+https://github.com/svachop/homelab/blob/main/declarative/root-app/root-app.yaml
+
+```YAML
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root-app
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/svachop/homelab.git
+    path: ./declarative/app-of-apps/
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+```
+
+We push the files to our Git repository:
+
+```bash
+$ git add declarative/root-app
+$ git commit -m 'add root-app'
+$ git push
+```
+
+And then apply the manifest in our Kubernetes cluster. The first time we have to do it manually, later we'll let Argo CD manage the root-app and synchronize it automatically:
+
+```bash
+$ cd /Users/svachop/git/homelab/declarative/root-app
+$ kubectl apply -f root-app.yaml
+```
+
+In the Web UI we can now see that the root-app was created:
+
+
+
+
+
+<p align="right">(<a href="#table-of-contents">back to top</a>)</p>
