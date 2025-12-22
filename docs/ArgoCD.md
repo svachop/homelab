@@ -3,7 +3,7 @@
 **Argo CD is a Continuous Delivery (CD) tool that has gained popularity in DevOps for performing application delivery onto Kubernetes. It relies on a deployment method known as GitOps. GitOps is a mechanism that can pull the latest code and application configuration from the last known Git commit version and deploy it directly into Kubernetes resources.
 In this guide, we’ll install ArgoCD on a Kubernetes cluster and deploy first application using ArgoCD.**
 
-![A screenshot of the dashboard interface](images/argocd.jpeg)
+![ArgoCD](images/argocd.jpeg)
 
 ## Table of Contents
 
@@ -32,7 +32,7 @@ ArgoCD simplifies Kubernetes resource management by ensuring that your applicati
 ArgoCD adheres to the GitOps model by using Git repositories as the authority for both your application’s desired state and its target deployment environment. This transparent and consistent approach makes deployment processes reliable and easily auditable.
 ArgoCD supports a variety of Kubernetes manifests. Whether you work with customized applications, Helm charts, JSON files, or YAML configurations, ArgoCD automates the synchronization process to ensure that deployed application states across all target environments are always aligned with those defined in Git.
 
-![A screenshot of the dashboard interface](images/what-why-how-argocd.jpg)
+![How Does ArgoCD Work](images/what-why-how-argocd.jpg)
 
 ## Prerequisites
 
@@ -278,9 +278,10 @@ In the Web UI and kubernetes cluster we can now see that the root-app was create
 ```bash
 $ kubectl -n argocd get application
 NAME       SYNC STATUS   HEALTH STATUS
-root-app   Unknown       Healthy
+root-app   Synced        Healthy
 ```
 
+![A screenshot of the root-app.](images/argocd-root-app.jpg)
 
 
 
