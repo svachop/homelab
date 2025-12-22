@@ -17,6 +17,7 @@ In this guide, we’ll install ArgoCD on a Kubernetes cluster and deploy first a
     * [Benefits of the App-of-Apps Pattern](#benefits-of-the-app-of-apps-pattern)
     * [root-app](#root-app)
     * [Creating the root-app manifest](#creating-the-root-app-manifest)
+* [Let Argo CD manage itself](#let-argo-cd-manage-itself)
 * [Deploying First Application with ArgoCD](#deploying-first-application-with-argocd)
 
 ---
@@ -281,9 +282,51 @@ NAME       SYNC STATUS   HEALTH STATUS
 root-app   Synced        Healthy
 ```
 
-![A screenshot of the root-app.](images/argocd-root-app.jpg)
+![A screenshot of the root-app application.](images/argocd-root-app.jpg)
 
+<p align="right">(<a href="#table-of-contents">back to top</a>)</p>
 
+## Let Argo CD manage itself
 
+We previously installed Argo CD manually by running helm install from our local machine. This means that updates to Argo CD, like upgrading the chart version or changing the **values.yaml**, require us to execute the Helm CLI command from a local machine again. It's repetitive, error-prone and inconsistent with how we install other applications in our cluster.
+
+The solution is to let Argo CD manage Argo CD. To be more specific: We let the Argo CD controller watch for changes to the argo-cd helm chart in our repo (under **charts/argo-cd**), render the Helm chart, and apply the resulting manifests. It's done using kubectl and asynchronous, so it is safe for Kubernetes to restart the Argo CD Pods after it has been executed.
+
+To achieve this, we need to create an Application manifest that points to our Argo CD chart. We'll use the same chart version and values file as with our previous manual installation, so initially there won't be any changes made to the resources in the cluster.
+
+The application manifest looks like this:
+
+[argo-cd.yaml](https://github.com/svachop/homelab/blob/main/declarative/app-of-apps/argo-cd.yaml)
+
+```YAML
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argo-cd
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/svachop/homelab.git
+    path: ./charts/argo-cd
+    targetRevision: HEAD
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      selfHeal: true
+```
+We can commit and push the application manifest to our Git repository. 
+
+In the Web UI we should now see the root-app being OutOfSync, and then changing to Syncing. If it doesn't show the changes right away, it's probably due to the default change detection polling rate of 3 minutes. We can speed this up by clicking on the Refresh button on the root-app which triggers a manual sync.
+
+For faster change detection look into setting up [webhooks](https://argo-cd.readthedocs.io/en/stable/operator-manual/webhook/), these will trigger a sync immediately after pushing to the Git repo.
+
+![A screenshot of the argo-cd application.](images/argocd-root-app.jpg)
+
+Once the Argo CD application is green (synced) we're done. We can make changes to our Argo CD installation the same way we change other applications: by changing the files in the repo and pushing it to our Git repository.
 
 <p align="right">(<a href="#table-of-contents">back to top</a>)</p>
