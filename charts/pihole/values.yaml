@@ -1,8 +1,10 @@
 pihole:
-  # Use hostNetwork to bind directly to node IP on port 53
-  hostNetwork: "true"
+  # Use dnsHostPort to bind DNS to node IP on port 53
+  dnsHostPort:
+    enabled: true
+    port: 53
   
-  # DNS Service Configuration - Use ClusterIP since we're on hostNetwork
+  # DNS Service Configuration
   serviceDns:
     type: ClusterIP
   
@@ -10,7 +12,7 @@ pihole:
   serviceDhcp:
     enabled: false
   
-  # Web Interface Configuration - Keep NodePort for web UI
+  # Web Interface Configuration
   serviceWeb:
     type: NodePort
   
