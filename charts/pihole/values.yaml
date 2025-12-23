@@ -10,12 +10,10 @@ pihole:
   serviceDhcp:
     enabled: false
   
-  # Web Interface Configuration - Keep LoadBalancer for web UI
+  # Web Interface Configuration - Keep NodePort for web UI
   serviceWeb:
     type: NodePort
   
-  # Environment variables to allow web access
+  # Environment variables
   extraEnvVars:
-    VIRTUAL_HOST: "192.168.177.2"
-    CORS_HOSTS: "192.168.177.2"
     FTLCONF_dns_listeningMode: "all"
