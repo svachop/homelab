@@ -1,23 +1,21 @@
 pihole:
-  # DNS Service Configuration
+  # Use hostNetwork to bind directly to node IP on port 53
+  hostNetwork: "true"
+  
+  # DNS Service Configuration - Use ClusterIP since we're on hostNetwork
   serviceDns:
-    type: LoadBalancer
-    loadBalancerIP: "192.168.177.240"
-    annotations:
-      metallb.universe.tf/allow-shared-ip: "pihole-svc"
+    type: ClusterIP
   
   # DHCP Service Configuration
   serviceDhcp:
     enabled: false
   
-  # Web Interface Configuration
+  # Web Interface Configuration - Keep LoadBalancer for web UI
   serviceWeb:
-    type: LoadBalancer
-    loadBalancerIP: "192.168.177.240"
-    annotations:
-      metallb.universe.tf/allow-shared-ip: "pihole-svc"
+    type: NodePort
   
   # Environment variables to allow web access
   extraEnvVars:
-    VIRTUAL_HOST: "192.168.177.240"
-    CORS_HOSTS: "192.168.177.240"
+    VIRTUAL_HOST: "192.168.177.2"
+    CORS_HOSTS: "192.168.177.2"
+    FTLCONF_dns_listeningMode: "all"
