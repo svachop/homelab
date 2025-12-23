@@ -2,3 +2,8 @@
 metallb:
   crds:
     enabled: true
+  
+  # Disable FRR for pure L2 mode
+  speaker:
+    frr:
+      enabled: false
