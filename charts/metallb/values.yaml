@@ -1,0 +1,21 @@
+# MetalLB Configuration
+metallb:
+  # Install CRDs
+  crds:
+    enabled: true
+  
+  # Configure IP Address Pool
+  # Update the IP range to match your network
+  ipAddressPools:
+    - name: default-pool
+      addresses:
+        - 192.168.1.240-192.168.1.250  # Change this to your available IP range
+      # Optional: auto-assign IPs to services
+      autoAssign: true
+  
+  # Configure Layer 2 Advertisement
+  l2Advertisements:
+    - name: default-l2-adv
+      # Advertise all IP pools (leave empty to advertise all)
+      ipAddressPools:
+        - default-pool
