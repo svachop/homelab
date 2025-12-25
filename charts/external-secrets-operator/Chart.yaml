@@ -1,8 +1,8 @@
 apiVersion: v2
-description: Installs external-secrets in kubernetes
+description: Installs external-secrets-operator in kubernetes
 name: external-secrets-operator
 version: 1.0.0
 dependencies:
-  - name: external-secrets-operator
+  - name: external-secrets
     version: 1.2.0
     repository: https://charts.external-secrets.io/
