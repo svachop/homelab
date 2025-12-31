@@ -1,4 +1,4 @@
-onepassword-connect:
+connect:
   # Use the pre-created secret containing 1password-credentials.json
   connect:
     credentials_base64: ""

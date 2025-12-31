@@ -3,6 +3,6 @@ description: Installs onepassword-connect in kubernetes
 name: onepassword-connect
 version: 1.0.0
 dependencies:
-  - name: onepassword-connect
+  - name: connect
     version: 2.1.1
     repository: https://1password.github.io/connect-helm-charts
