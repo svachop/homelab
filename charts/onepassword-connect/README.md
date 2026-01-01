@@ -2,14 +2,27 @@
 
 ## Prerequisites
 
-Before ArgoCD can deploy this chart, you must manually create the credentials secret:
+Before ArgoCD can deploy this chart, you must manually create the credentials secret.
+
+The credentials file must be base64-encoded in the secret:
 
 ```bash
-# Create the secret from your credentials file
+# Create the secret with base64-encoded credentials
 kubectl create secret generic onepassword-credentials \
-  --from-file=1password-credentials.json=/Users/svachop/HomeLab/Praha/1Password/1password-credentials.json \
-  --namespace onepassword-connect \
-  --dry-run=client -o yaml | kubectl apply -f -
+  --from-literal=1password-credentials.json=$(base64 -i /Users/svachop/HomeLab/Praha/1Password/1password-credentials.json) \
+  --namespace onepassword-connect
+```
+
+Or if you already created it with `--from-file`, delete and recreate it:
+
+```bash
+# Delete the existing secret
+kubectl delete secret onepassword-credentials -n onepassword-connect
+
+# Create with base64-encoded content
+kubectl create secret generic onepassword-credentials \
+  --from-literal=1password-credentials.json=$(base64 -i /Users/svachop/HomeLab/Praha/1Password/1password-credentials.json) \
+  --namespace onepassword-connect
 ```
 
 **Important:** The namespace must exist first. You can create it with:
